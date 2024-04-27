@@ -1,14 +1,17 @@
 BEGIN;
 
 INSERT INTO sun_table_final
-SELECT DISTINCT ON (DATE(to_timestamp((raw_json ->> 'dt')::BIGINT) AT TIME ZONE 'PDT'))
+(SELECT DISTINCT ON (DATE(to_timestamp((raw_json ->> 'dt')::BIGINT) AT TIME ZONE 'PDT'))
     to_timestamp((raw_json -> 'sys' ->> 'sunset')::BIGINT) AT TIME ZONE 'PDT',
     to_timestamp((raw_json -> 'sys' ->> 'sunrise')::BIGINT) AT TIME ZONE 'PDT',
     to_timestamp((raw_json ->> 'dt')::BIGINT) AT TIME ZONE 'PDT',
     (raw_json -> 'sys' ->> 'id')::BIGINT,
     (raw_json -> 'sys' ->> 'type')::BIGINT,
     (to_timestamp((raw_json ->> 'dt')::BIGINT) AT TIME ZONE 'PDT')::DATE
-FROM my_scraper;
+FROM my_scraper)    
+ON CONFLICT (date_)
+  DO NOTHING
+;
 
 
 INSERT INTO weather_desc_table (weather_id, weather_icon, weather_main, weather_description)
