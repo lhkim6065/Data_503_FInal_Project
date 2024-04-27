@@ -15,16 +15,19 @@ ON CONFLICT (date_)
 
 
 INSERT INTO weather_desc_table (weather_id, weather_icon, weather_main, weather_description)
-SELECT DISTINCT ON ((raw_json -> 'weather' -> 0 ->> 'id')::BIGINT)
+(SELECT DISTINCT ON ((raw_json -> 'weather' -> 0 ->> 'id')::BIGINT)
     (raw_json -> 'weather' -> 0 ->> 'id')::BIGINT,
     (raw_json -> 'weather' -> 0 ->> 'icon')::VARCHAR(255),
     (raw_json -> 'weather' -> 0 ->> 'main')::VARCHAR(255),
     (raw_json -> 'weather' -> 0 ->> 'description')::VARCHAR(255)
-FROM my_scraper;
+FROM my_scraper)
+ON CONFLICT (weather_id)
+  DO NOTHING
+;
 
 
 INSERT INTO location_table (city_id, city_name, cod, lat, long, timezone, country)
-SELECT DISTINCT ON (raw_json -> 'id')
+(SELECT DISTINCT ON (raw_json -> 'id')
     (raw_json -> 'id')::BIGINT AS city_id,
     (raw_json -> 'name')::TEXT AS city_name,
     (raw_json -> 'cod')::BIGINT AS cod,
@@ -32,7 +35,10 @@ SELECT DISTINCT ON (raw_json -> 'id')
     (raw_json -> 'coord' ->> 'lon')::DOUBLE PRECISION AS long,
     (raw_json -> 'timezone')::BIGINT AS timezone,
     (raw_json -> 'sys' -> 'country')::TEXT AS country
-FROM my_scraper;
+FROM my_scraper)
+ON CONFLICT (city_id)
+  DO NOTHING
+;
 
 
 INSERT INTO weather_table (wind_deg, wind_gust, wind_speed, main_temp, main_humidity, 
